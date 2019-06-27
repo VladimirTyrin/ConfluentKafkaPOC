@@ -15,13 +15,16 @@ namespace ConfluentKafkaPOC.Common
         private Timer _timer;
         private int _messages;
         private int _lastMessages;
+        private long _messagesSize;
+        private long _lastMessagesSize;
 
-        public void AddMessage()
+        public void AddMessage(int size)
         {
             if (! _started)
                 Start();
 
             Interlocked.Increment(ref _messages);
+            Interlocked.Add(ref _messagesSize, size);
         }
 
         public void Dispose()
@@ -31,7 +34,7 @@ namespace ConfluentKafkaPOC.Common
             _stopwatch.Stop();
             _timer.Stop();
             _timer.Dispose();
-            Console.WriteLine($"RPS Avg: {_messages * 1000.0 / _stopwatch.ElapsedMilliseconds:F2}");
+            Console.WriteLine($"RPS Avg: {GetAvgRps():F2}; Msg size avg: {GetAvgMessageSize():F1} bytes");
         }
 
         // Average from start time
@@ -46,6 +49,16 @@ namespace ConfluentKafkaPOC.Common
             return (_messages - _lastMessages) * 1000.0 / (_stopwatch.ElapsedMilliseconds - _lastElapsed);
         }
 
+        private double GetAvgMessageSize()
+        {
+            return _messagesSize * 1.0 / _messages;
+        }
+
+        private double GetMessageSize()
+        {
+            return (_messagesSize - _lastMessagesSize) * 1.0 / (_messages - _lastMessages);
+        }
+
         private void Start()
         {
             _started = true;
@@ -57,9 +70,10 @@ namespace ConfluentKafkaPOC.Common
 
         private void TimerOnElapsed(object sender, ElapsedEventArgs e)
         {
-            Console.WriteLine($"RPS: {GetRps():F2}; Avg: {GetAvgRps():F2}");
+            Console.WriteLine($"RPS: {GetRps():F2}; Avg: {GetAvgRps():F2}; Msg size: {GetMessageSize():F1}; Avg: {GetAvgMessageSize():F1}");
             _lastMessages = _messages;
             _lastElapsed = _stopwatch.ElapsedMilliseconds;
+            _lastMessagesSize = _messagesSize;
         }
     }
 }

@@ -45,8 +45,8 @@ namespace ConfluentKafkaPOC.V10
                     {
                         try
                         {
-                            consumer.Consume(cts.Token);
-                            counter.AddMessage();
+                            var result = consumer.Consume(cts.Token);
+                            counter.AddMessage(result.Message.Value.Length);
                         }
                         catch (OperationCanceledException)
                         {

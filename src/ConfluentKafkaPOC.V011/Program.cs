@@ -60,7 +60,7 @@ namespace ConfluentKafkaPOC.V011
                     {
                         if (consumer.Consume(out var message, 5000))
                         {
-                            counter.AddMessage();
+                            counter.AddMessage(message.Value.Length);
                             consumer.StoreOffset(message);
                         }
                     }
